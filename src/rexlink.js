@@ -11,21 +11,25 @@ export default class Rexlink extends Plugin {
         const linkUI = editor.plugins.get( LinkUI );
 
         this.linkFormView = linkUI.formView;
-        this.button = this._createButton();
+        this.linkButton = this._createInternalLinkButton();
+        this.mediaButton = this._createInternalMediaLinkButton();
 
         this.linkFormView.once( 'render', () => {
             // Render button's tamplate.
-            this.button.render();
+            this.linkButton.render();
+            this.mediaButton.render();
 
-        // Register the button under the link form view, it will handle its destruction.
-        this.linkFormView.registerChild( this.button );
+            // Register the button under the link form view, it will handle its destruction.
+            this.linkFormView.registerChild( this.linkButton );
+            this.linkFormView.registerChild( this.mediaButton );
 
-        // Inject the element into DOM.
-        this.linkFormView.element.insertBefore( this.button.element, this.linkFormView.saveButtonView.element );
-    } );
+            // Inject the element into DOM.
+            this.linkFormView.element.insertBefore( this.linkButton.element, this.linkFormView.saveButtonView.element );
+            this.linkFormView.element.insertBefore( this.mediaButton.element, this.linkFormView.saveButtonView.element );
+        } );
     }
 
-    _createButton() {
+    _createInternalLinkButton() {
         const editor = this.editor;
         const button = new ButtonView( this.locale );
         const linkCommand = editor.commands.get( 'link' );
@@ -52,6 +56,42 @@ export default class Rexlink extends Plugin {
 
                 // The line below will be probably executed inside some callback.
                 urlInputView.value = linkurl;
+            });
+
+        } );
+
+        return button;
+    }
+
+    _createInternalMediaLinkButton() {
+        const editor = this.editor;
+        const button = new ButtonView( this.locale );
+        const linkCommand = editor.commands.get( 'link' );
+
+        button.set( {
+            label: 'Media link',
+            withText: true,
+            tooltip: true
+        } );
+
+        // Probably this button should be also disabled when the link command is disabled.
+        // Try setting editor.isReadOnly = true to see it in action.
+        button.bind( 'isEnabled' ).to( linkCommand );
+
+        button.on( 'execute', () => {
+            // Do something (like open the popup), then update the link URL field's value.
+
+            var mediaPool = openMediaPool('cke5_medialink');
+            const urlInputView = this.linkFormView.urlInputView;
+
+            $(mediaPool).on('rex:selectMedia', function (event, filename) {
+                event.preventDefault();
+                mediaPool.close();
+
+                console.log(filename);
+
+                // The line below will be probably executed inside some callback.
+                urlInputView.value = filename;
             });
 
         } );
