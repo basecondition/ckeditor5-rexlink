@@ -5,7 +5,7 @@ import LinkUI from '@ckeditor/ckeditor5-link/src/linkui';
 /**
  * @extends module:core/plugin~Plugin
  */
-class Rexlink extends Plugin {
+export default class Rexlink extends Plugin {
     init() {
         const editor = this.editor;
         const linkUI = editor.plugins.get( LinkUI );
