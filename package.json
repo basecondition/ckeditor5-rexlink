@@ -1,6 +1,6 @@
 {
-  "name": "@ckeditor/ckeditor5-link",
-  "version": "10.0.0",
+  "name": "ckeditor5-rexlink",
+  "version": "1.0.0",
   "description": "Internlink integration for redaxo5.",
   "keywords": [
     "ckeditor",
@@ -15,8 +15,7 @@
     "@ckeditor/ckeditor5-ui": "^10.0.0"
   },
   "devDependencies": {
-    "@ckeditor/ckeditor5-editor-classic": "^10.0.0",
-    "@ckeditor/ckeditor5-link": "^10.0.0"
+    "@ckeditor/ckeditor5-editor-classic": "^10.0.0"
   },
   "engines": {
     "node": ">=6.0.0",
@@ -25,12 +24,17 @@
   "author": "hello@baseconditio.com",
   "license": "GPL-2.0-or-later",
   "homepage": "https://ckeditor.com",
-  "bugs": "https://github.com/basecondition/ckeditor5-rexlink/issues",
+  "bugs": {
+    "url": "https://github.com/basecondition/ckeditor5-rexlink/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/basecondition/ckeditor5-rexlink.git"
+    "url": "git+https://github.com/basecondition/ckeditor5-rexlink.git"
   },
   "files": [
-    "src",
-  ]
+    "src"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
 }
