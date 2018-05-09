@@ -42,8 +42,18 @@ export default class Rexlink extends Plugin {
 
         button.on( 'execute', () => {
             // Do something (like open the popup), then update the link URL field's value.
+
+            var linkMap = openLinkMap('', '&clang=1');
+        const urlInputView = this.linkFormView.urlInputView;
+
+        $(linkMap).on('rex:selectLink', function (event, linkurl, linktext) {
+            event.preventDefault();
+            linkMap.close();
+
             // The line below will be probably executed inside some callback.
-            this.linkFormView.urlInputView.value = 'http://some.internal.link';
+            urlInputView.value = linkurl;
+        });
+
     } );
 
         return button;
