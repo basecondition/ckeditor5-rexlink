@@ -44,17 +44,17 @@ export default class Rexlink extends Plugin {
             // Do something (like open the popup), then update the link URL field's value.
 
             var linkMap = openLinkMap('', '&clang=1');
-        const urlInputView = this.linkFormView.urlInputView;
+            const urlInputView = this.linkFormView.urlInputView;
 
-        $(linkMap).on('rex:selectLink', function (event, linkurl, linktext) {
-            event.preventDefault();
-            linkMap.close();
+            $(linkMap).on('rex:selectLink', function (event, linkurl, linktext) {
+                event.preventDefault();
+                linkMap.close();
 
-            // The line below will be probably executed inside some callback.
-            urlInputView.value = linkurl;
-        });
+                // The line below will be probably executed inside some callback.
+                urlInputView.value = linkurl;
+            });
 
-    } );
+        } );
 
         return button;
     }
