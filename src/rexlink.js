@@ -2,30 +2,51 @@ import ButtonView from '@ckeditor/ckeditor5-ui/src/button/buttonview';
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
 import LinkUI from '@ckeditor/ckeditor5-link/src/linkui';
 
+import internlinkIcon from 'ckeditor5-rexlink/theme/icons/internlink.svg';
+import medialinkIcon from 'ckeditor5-rexlink/theme/icons/medialink.svg';
+
 /**
  * @extends module:core/plugin~Plugin
  */
 export default class Rexlink extends Plugin {
+    constructor( editor ) {
+        super( editor );
+        editor.config.define( 'link.rexlink', [ 'internal', 'media' ] );
+    }
+
     init() {
         const editor = this.editor;
         const linkUI = editor.plugins.get( LinkUI );
+        const rexlinkConfig = editor.config.get( 'link.rexlink' );
 
         this.linkFormView = linkUI.formView;
         this.linkButton = this._createInternalLinkButton();
         this.mediaButton = this._createInternalMediaLinkButton();
 
         this.linkFormView.once( 'render', () => {
-            // Render button's tamplate.
-            this.linkButton.render();
-            this.mediaButton.render();
+            // to use this in for each callback
+            const that = this;
 
-            // Register the button under the link form view, it will handle its destruction.
-            this.linkFormView.registerChild( this.linkButton );
-            this.linkFormView.registerChild( this.mediaButton );
+            rexlinkConfig.forEach(function(item, index, array) {
+                console.log(item, index);
+                if (item == 'internal') {
+                    // Render button's tamplate.
+                    that.linkButton.render();
+                    // Register the button under the link form view, it will handle its destruction.
+                    that.linkFormView.registerChild( that.linkButton );
+                    // Inject the element into DOM.
+                    that.linkFormView.element.insertBefore( that.linkButton.element, that.linkFormView.saveButtonView.element );
+                }
+                if (item == 'media') {
+                    // Render button's tamplate.
+                    that.mediaButton.render();
+                    // Register the button under the link form view, it will handle its destruction.
+                    that.linkFormView.registerChild( that.mediaButton );
+                    // Inject the element into DOM.
+                    that.linkFormView.element.insertBefore( that.mediaButton.element, that.linkFormView.saveButtonView.element );
+                }
+            });
 
-            // Inject the element into DOM.
-            this.linkFormView.element.insertBefore( this.linkButton.element, this.linkFormView.saveButtonView.element );
-            this.linkFormView.element.insertBefore( this.mediaButton.element, this.linkFormView.saveButtonView.element );
         } );
     }
 
@@ -36,7 +57,8 @@ export default class Rexlink extends Plugin {
 
         button.set( {
             label: 'Internal link',
-            withText: true,
+            icon: internlinkIcon,
+            withText: false,
             tooltip: true
         } );
 
@@ -70,7 +92,8 @@ export default class Rexlink extends Plugin {
 
         button.set( {
             label: 'Media link',
-            withText: true,
+            icon: medialinkIcon,
+            withText: false,
             tooltip: true
         } );
 
@@ -88,10 +111,8 @@ export default class Rexlink extends Plugin {
                 event.preventDefault();
                 mediaPool.close();
 
-                console.log(filename);
-
                 // The line below will be probably executed inside some callback.
-                urlInputView.value = filename;
+                urlInputView.value = '/media/' + filename;
             });
 
         } );
