@@ -9,11 +9,17 @@ import medialinkIcon from 'ckeditor5-rexlink/theme/icons/medialink.svg';
  * @extends module:core/plugin~Plugin
  */
 export default class Rexlink extends Plugin {
+    /**
+     * @inheritDoc
+     */
     constructor( editor ) {
         super( editor );
         editor.config.define( 'link.rexlink', [ 'internal', 'media' ] );
     }
 
+    /**
+     * @inheritDoc
+     */
     init() {
         const editor = this.editor;
         const linkUI = editor.plugins.get( LinkUI );
@@ -28,7 +34,6 @@ export default class Rexlink extends Plugin {
             const that = this;
 
             rexlinkConfig.forEach(function(item, index, array) {
-                console.log(item, index);
                 if (item == 'internal') {
                     // Render button's tamplate.
                     that.linkButton.render();
@@ -71,6 +76,7 @@ export default class Rexlink extends Plugin {
 
             var linkMap = openLinkMap('', '&clang=1');
             const urlInputView = this.linkFormView.urlInputView;
+            const thatLinkFormView = this.linkFormView.element;
 
             $(linkMap).on('rex:selectLink', function (event, linkurl, linktext) {
                 event.preventDefault();
@@ -78,6 +84,16 @@ export default class Rexlink extends Plugin {
 
                 // The line below will be probably executed inside some callback.
                 urlInputView.value = linkurl;
+
+                $(thatLinkFormView).on('submit', function(){
+                    var regex = '>' + linkurl + '<',
+                        matches = editor.getData().match(regex);
+
+                    if (matches) {
+                        var result = editor.getData().replace(regex, '>' + linktext + '<');
+                        editor.setData(result);
+                    }
+                });
             });
 
         } );
