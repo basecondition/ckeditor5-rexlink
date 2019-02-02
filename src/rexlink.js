@@ -75,8 +75,18 @@ export default class Rexlink extends Plugin {
             // Do something (like open the popup), then update the link URL field's value.
 
             // use query parameter clang
+            let url = location.search,
+                clang = 1, // default 1
+                query_string = url.substring(url.indexOf('?') + 1).split('&');
+            for (let i = 0, result = {}; i < query_string.length; i++) {
+                query_string[i] = query_string[i].split('=');
+                if (query_string[i][0] == 'clang') {
+                    clang = query_string[i][1]; // set by url
+                    break;
+                }
+            }
 
-            var linkMap = openLinkMap('', '&clang=1');
+            let linkMap = openLinkMap('', '&clang=' + clang);
             const urlInputView = this.linkFormView.urlInputView;
             const thatLinkFormView = this.linkFormView.element;
 
@@ -128,9 +138,7 @@ export default class Rexlink extends Plugin {
 
             const urlInputView = this.linkFormView.urlInputView;
 
-            if (typeof media_path === 'undefined') {
-                mediaPath = '../media/';
-            } else {
+            if (typeof media_path === 'undefined') { } else {
                 mediaPath = media_path;
             }
 
