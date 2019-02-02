@@ -12,9 +12,9 @@ export default class Rexlink extends Plugin {
     /**
      * @inheritDoc
      */
-    constructor( editor ) {
-        super( editor );
-        editor.config.define( 'link.rexlink', [ 'internal', 'media' ] );
+    constructor(editor) {
+        super(editor);
+        editor.config.define('link.rexlink', ['internal', 'media']);
     }
 
     /**
@@ -22,57 +22,59 @@ export default class Rexlink extends Plugin {
      */
     init() {
         const editor = this.editor;
-        const linkUI = editor.plugins.get( LinkUI );
-        const rexlinkConfig = editor.config.get( 'link.rexlink' );
+        const linkUI = editor.plugins.get(LinkUI);
+        const rexlinkConfig = editor.config.get('link.rexlink');
 
         this.linkFormView = linkUI.formView;
         this.linkButton = this._createInternalLinkButton();
         this.mediaButton = this._createInternalMediaLinkButton();
 
-        this.linkFormView.once( 'render', () => {
+        this.linkFormView.once('render', () => {
             // to use this in for each callback
             const that = this;
 
-            rexlinkConfig.forEach(function(item, index, array) {
+            rexlinkConfig.forEach(function (item, index, array) {
                 if (item == 'internal') {
                     // Render button's tamplate.
                     that.linkButton.render();
                     // Register the button under the link form view, it will handle its destruction.
-                    that.linkFormView.registerChild( that.linkButton );
+                    that.linkFormView.registerChild(that.linkButton);
                     // Inject the element into DOM.
-                    that.linkFormView.element.insertBefore( that.linkButton.element, that.linkFormView.saveButtonView.element );
+                    that.linkFormView.element.insertBefore(that.linkButton.element, that.linkFormView.saveButtonView.element);
                 }
                 if (item == 'media') {
                     // Render button's tamplate.
                     that.mediaButton.render();
                     // Register the button under the link form view, it will handle its destruction.
-                    that.linkFormView.registerChild( that.mediaButton );
+                    that.linkFormView.registerChild(that.mediaButton);
                     // Inject the element into DOM.
-                    that.linkFormView.element.insertBefore( that.mediaButton.element, that.linkFormView.saveButtonView.element );
+                    that.linkFormView.element.insertBefore(that.mediaButton.element, that.linkFormView.saveButtonView.element);
                 }
             });
 
-        } );
+        });
     }
 
     _createInternalLinkButton() {
         const editor = this.editor;
-        const button = new ButtonView( this.locale );
-        const linkCommand = editor.commands.get( 'link' );
+        const button = new ButtonView(this.locale);
+        const linkCommand = editor.commands.get('link');
 
-        button.set( {
+        button.set({
             label: 'Internal link',
             icon: internlinkIcon,
             withText: false,
             tooltip: true
-        } );
+        });
 
         // Probably this button should be also disabled when the link command is disabled.
         // Try setting editor.isReadOnly = true to see it in action.
-        button.bind( 'isEnabled' ).to( linkCommand );
+        button.bind('isEnabled').to(linkCommand);
 
-        button.on( 'execute', () => {
+        button.on('execute', () => {
             // Do something (like open the popup), then update the link URL field's value.
+
+            // use query parameter clang
 
             var linkMap = openLinkMap('', '&clang=1');
             const urlInputView = this.linkFormView.urlInputView;
@@ -85,7 +87,7 @@ export default class Rexlink extends Plugin {
                 // The line below will be probably executed inside some callback.
                 urlInputView.value = linkurl;
 
-                $(thatLinkFormView).on('submit', function(){
+                $(thatLinkFormView).on('submit', function () {
                     var regex = '>' + linkurl + '<',
                         matches = editor.getData().match(regex);
 
@@ -96,42 +98,51 @@ export default class Rexlink extends Plugin {
                 });
             });
 
-        } );
+        });
 
         return button;
     }
 
     _createInternalMediaLinkButton() {
         const editor = this.editor;
-        const button = new ButtonView( this.locale );
-        const linkCommand = editor.commands.get( 'link' );
+        const button = new ButtonView(this.locale);
+        const linkCommand = editor.commands.get('link');
+        const media_path = editor.config.get('rexLink.media_path');
 
-        button.set( {
+        button.set({
             label: 'Media link',
             icon: medialinkIcon,
             withText: false,
             tooltip: true
-        } );
+        });
 
         // Probably this button should be also disabled when the link command is disabled.
         // Try setting editor.isReadOnly = true to see it in action.
-        button.bind( 'isEnabled' ).to( linkCommand );
+        button.bind('isEnabled').to(linkCommand);
 
-        button.on( 'execute', () => {
+        button.on('execute', () => {
             // Do something (like open the popup), then update the link URL field's value.
 
-            var mediaPool = openMediaPool('cke5_medialink');
+            let mediaPool = openMediaPool('cke5_medialink'),
+                mediaPath = '/media/';
+
             const urlInputView = this.linkFormView.urlInputView;
+
+            if (typeof media_path === 'undefined') {
+                mediaPath = '../media/';
+            } else {
+                mediaPath = media_path;
+            }
 
             $(mediaPool).on('rex:selectMedia', function (event, filename) {
                 event.preventDefault();
                 mediaPool.close();
 
                 // The line below will be probably executed inside some callback.
-                urlInputView.value = '/media/' + filename;
+                urlInputView.value = mediaPath + filename;
             });
 
-        } );
+        });
 
         return button;
     }

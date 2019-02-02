@@ -1,6 +1,6 @@
 {
   "name": "ckeditor5-rexlink",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Internlink integration for redaxo5.",
   "keywords": [
     "ckeditor",
@@ -32,7 +32,8 @@
     "url": "git+https://github.com/basecondition/ckeditor5-rexlink.git"
   },
   "files": [
-    "src"
+    "src",
+    "theme"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
