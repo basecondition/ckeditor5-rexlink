@@ -1,5 +1,5 @@
-import ButtonView from '@ckeditor/ckeditor5-ui/src/button/buttonview';
 import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
+import ButtonView from '@ckeditor/ckeditor5-ui/src/button/buttonview';
 import LinkUI from '@ckeditor/ckeditor5-link/src/linkui';
 
 import internlinkIcon from 'ckeditor5-rexlink/theme/icons/internlink.svg';
@@ -34,7 +34,7 @@ export default class Rexlink extends Plugin {
             const that = this;
 
             rexlinkConfig.forEach(function (item, index, array) {
-                if (item == 'internal') {
+                if (item === 'internal') {
                     // Render button's tamplate.
                     that.linkButton.render();
                     // Register the button under the link form view, it will handle its destruction.
@@ -42,7 +42,7 @@ export default class Rexlink extends Plugin {
                     // Inject the element into DOM.
                     that.linkFormView.element.insertBefore(that.linkButton.element, that.linkFormView.saveButtonView.element);
                 }
-                if (item == 'media') {
+                if (item === 'media') {
                     // Render button's tamplate.
                     that.mediaButton.render();
                     // Register the button under the link form view, it will handle its destruction.
@@ -95,7 +95,7 @@ export default class Rexlink extends Plugin {
                 linkMap.close();
 
                 // The line below will be probably executed inside some callback.
-                urlInputView.value = linkurl;
+                urlInputView.fieldView.element.value = linkurl;
 
                 $(thatLinkFormView).on('submit', function () {
                     var regex = '>' + linkurl + '<',
@@ -147,7 +147,7 @@ export default class Rexlink extends Plugin {
                 mediaPool.close();
 
                 // The line below will be probably executed inside some callback.
-                urlInputView.value = mediaPath + filename;
+                urlInputView.fieldView.element.value = mediaPath + filename;
             });
 
         });
