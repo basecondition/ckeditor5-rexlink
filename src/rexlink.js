@@ -26,6 +26,7 @@ export default class Rexlink extends Plugin {
     constructor(editor) {
         super(editor);
         editor.config.define('link.rexlink', ['internal', 'media', 'email', 'phone']);
+        editor.config.define('link.ytable', []);
     }
 
     /**
