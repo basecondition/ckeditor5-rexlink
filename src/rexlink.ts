@@ -156,17 +156,12 @@ export default class RexLink extends Plugin {
 		const editor = this.editor;
 		const dropdown = createDropdown( this.editor.locale );
 		const linkCommand = editor.commands.get( 'link' );
-		let title = 'Redaxo yTable-Link-Widgets';
-
-		if ( rexLinkConfig.includes( 'ytable' ) === true ) {
-			title = 'Redaxo Link-Widgets';
-		}
 
 		addListToDropdown( dropdown, this.#prepareDropdownItemsCollection( rexLinkConfig, yTableLinkConfig ) );
 
 		// Create dropdown model.#cd
 		dropdown.buttonView.set( {
-			label: title,
+			label: 'Redaxo Link-Widgets',
 			icon: redaxolinkIcon,
 			withText: false,
 			tooltip: true
