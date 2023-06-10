@@ -161,7 +161,7 @@ export default class RexLink extends Plugin {
 
 		// Create dropdown model.#cd
 		dropdown.buttonView.set( {
-			label: 'Redaxo Link-Widgets',
+			label: 'Link widgets',
 			icon: redaxolinkIcon,
 			withText: false,
 			tooltip: true
