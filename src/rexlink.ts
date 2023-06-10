@@ -425,13 +425,14 @@ export default class RexLink extends Plugin {
 			urlInputView = this.linkFormView.urlInputView;
 		}
 
-		pool.on( 'rex:YForm_selectData', ( event: any, id: string, label: string ) => {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		$( pool ).on( 'rex:YForm_selectData', ( event: any, id: string, label: string ) => {
 			event.preventDefault();
 			pool.close();
 
 			const linkUrl = table.split( '_' ).join( '-' ) + '://' + id;
-
-			that.#replaceLabel( this.editor, linkUrl, label );
+			that.#replaceLabelOnSubmit( that.editor, linkUrl, label );
 
 			// The line below will be probably executed inside some callback.
 			if ( urlInputView != null ) {
