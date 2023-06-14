@@ -12,6 +12,7 @@ import type { ListDropdownItemDefinition } from '@ckeditor/ckeditor5-ui/src/drop
 import { createDropdown, addListToDropdown } from '@ckeditor/ckeditor5-ui/src/dropdown/utils';
 import type { DropdownView, ViewWithCssTransitionDisabler, InputTextView, LabeledFieldView } from '@ckeditor/ckeditor5-ui';
 // eslint-disable-next-line no-duplicate-imports
+import type { ImageUtils } from '@ckeditor/ckeditor5-image';
 import { ButtonView } from '@ckeditor/ckeditor5-ui';
 
 import internlinkIcon from '../theme/icons/internlink.svg';
@@ -20,10 +21,6 @@ import redaxolinkIcon from '../theme/icons/redaxolink.svg';
 import emailLinkIcon from '../theme/icons/emaillink.svg';
 import phoneLinkIcon from '../theme/icons/phonelink.svg';
 import yTableLinkIcon from '../theme/icons/ytablelink.svg';
-
-// TODO data-link-category => 14, data-media-category => 1, data-media-type => 'jpg,png' -> options like mform custom link
-// TODO open media link by media id
-// TODO custom icon for ytable widget dropdown links
 
 export default class RexLink extends Plugin {
 	public static get pluginName(): 'RexLink' {
@@ -63,14 +60,12 @@ export default class RexLink extends Plugin {
 	}
 
 	#extendView( linkUI: LinkUI ): void {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const that = this;
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		const rexLinkConfig: Array<string> = this.editor.config.get( 'link.rexlink' );
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
-		const yTableLinkConfig: Array<{ table: string; label: string; title: string }> = this.editor.config.get( 'link.ytable' );
+		const yTableLinkConfig: Array<{ table: string; column: string; title: string }> = this.editor.config.get( 'link.ytable' );
 		let rexItemButton: ButtonView | DropdownView | null = null;
 		this.linkFormView = linkUI.formView;
 
@@ -78,12 +73,12 @@ export default class RexLink extends Plugin {
 		if ( Array.isArray( rexLinkConfig ) && rexLinkConfig.length > 0 ) {
 			if ( rexLinkConfig.length === 1 ) {
 				if ( rexLinkConfig.includes( 'ytable' ) && yTableLinkConfig.length > 0 ) {
-					rexItemButton = that.#createLinkDropDown( rexLinkConfig, yTableLinkConfig );
+					rexItemButton = this.#createLinkDropDown( rexLinkConfig, yTableLinkConfig );
 				} else {
-					rexItemButton = that.#createLinkButton( rexLinkConfig[ 0 ] );
+					rexItemButton = this.#createLinkButton( rexLinkConfig[ 0 ] );
 				}
 			} else {
-				rexItemButton = that.#createLinkDropDown( rexLinkConfig, yTableLinkConfig );
+				rexItemButton = this.#createLinkDropDown( rexLinkConfig, yTableLinkConfig );
 			}
 		}
 
@@ -152,7 +147,7 @@ export default class RexLink extends Plugin {
 		}
 	}
 
-	#createLinkDropDown( rexLinkConfig: Array<string>, yTableLinkConfig: Array<{ table: string; label: string; title: string }> ) {
+	#createLinkDropDown( rexLinkConfig: Array<string>, yTableLinkConfig: Array<{ table: string; column: string; title: string }> ) {
 		const editor = this.editor;
 		const dropdown = createDropdown( this.editor.locale );
 		const linkCommand = editor.commands.get( 'link' );
@@ -251,7 +246,7 @@ export default class RexLink extends Plugin {
 	}
 
 	// eslint-disable-next-line max-len
-	#prepareDropdownItemsCollection( rexLinkConfig: Array<string>, yTableLinkConfig: Array<{ table: string; label: string; title: string }> ): Collection<ListDropdownItemDefinition> {
+	#prepareDropdownItemsCollection( rexLinkConfig: Array<string>, yTableLinkConfig: Array<{ table: string; column: string; title: string }> ): Collection<ListDropdownItemDefinition> {
 		const collection = new Collection<ListDropdownItemDefinition>();
 
 		if ( rexLinkConfig.length > 0 ) {
@@ -263,7 +258,7 @@ export default class RexLink extends Plugin {
 								type: 'button',
 								model: new Model( {
 									commandName: 'link',
-									commandParam: '::' + object.table + '|' + object.label,
+									commandParam: '::' + object.table + '|' + object.column,
 									icon: yTableLinkIcon,
 									label: object.title,
 									class: 'ck-rex-ytable-link-option',
@@ -307,11 +302,13 @@ export default class RexLink extends Plugin {
 	}
 
 	#linkWidgetExecute() {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const that = this;
 		const url = location.search;
 		let clang = 1; // default 1
 		const queryString = url.substring( url.indexOf( '?' ) + 1 ).split( '&' );
+		let popupQuery: string = '';
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		const configLinkCategory: string = this.editor.config.get( 'link.rexlink_category' );
 
 		for ( let i = 0; i < queryString.length; i++ ) {
 			const result = queryString[ i ].split( '=' );
@@ -321,9 +318,13 @@ export default class RexLink extends Plugin {
 			}
 		}
 
+		if ( typeof configLinkCategory !== 'undefined' ) {
+			popupQuery = '&category_id=' + configLinkCategory;
+		}
+
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
-		const linkMap = openLinkMap( '', '&clang=' + clang );
+		const linkMap = openLinkMap( '', '&clang=' + clang + popupQuery);
 		let urlInputView: LabeledFieldView<InputTextView> | null = null;
 
 		if ( this.linkFormView != null ) {
@@ -336,26 +337,41 @@ export default class RexLink extends Plugin {
 			event.preventDefault();
 			linkMap.close();
 
-			that.#replaceLabelOnSubmit( that.editor, linkUrl, linkLabel );
+			this.#replaceLabelOnSubmit( this.editor, linkUrl, linkLabel );
 
 			if ( urlInputView != null ) {
 				// The line below will be probably executed inside some callback.
-				that.#writeFieldValue( linkUrl, urlInputView );
+				this.#writeFieldValue( linkUrl, urlInputView );
 			}
 		} );
 	}
 
 	#mediaWidgetExecute() {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const that = this;
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
-		const configMediaPath: string = this.editor.config.get( 'rexLink.media_path' );
+		const configMediaPath: string = this.editor.config.get( 'link.rexmedia_path' );
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
-		const mediaPool = openMediaPool( 'cke5_medialink' );
+		const configMediaCategory: string = this.editor.config.get( 'link.rexmedia_category' );
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		const configMediaTypes: string = this.editor.config.get( 'link.rexmedia_types' );
 		let mediaPath = '/media/';
+		let query = '';
 		let urlInputView: LabeledFieldView<InputTextView> | null = null;
+
+		if ( typeof configMediaCategory !== 'undefined' ) {
+			query = '&rex_file_category=' + configMediaCategory;
+		}
+		if ( typeof configMediaTypes !== 'undefined' ) {
+			query = query + '&args[types]=' + configMediaTypes;
+		}
+
+		// &args[category]=
+
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		const mediaPool = openREXMedia( 'cke5_medialink', query );
 
 		if ( this.linkFormView != null ) {
 			urlInputView = this.linkFormView.urlInputView;
@@ -371,11 +387,11 @@ export default class RexLink extends Plugin {
 			event.preventDefault();
 			mediaPool.close();
 
-			that.#replaceLabelOnSubmit( that.editor, mediaPath + filename, filename );
+			this.#replaceLabelOnSubmit( this.editor, mediaPath + filename, filename );
 
 			if ( urlInputView != null ) {
 				// The line below will be probably executed inside some callback.
-				that.#writeFieldValue( mediaPath + filename, urlInputView );
+				this.#writeFieldValue( mediaPath + filename, urlInputView );
 			}
 		} );
 	}
@@ -390,15 +406,13 @@ export default class RexLink extends Plugin {
 
 	#prefixWidgetExecute( prefix: string, prefixLabelReplace: string ) {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const that = this;
 		let urlInputView: LabeledFieldView<InputTextView> | null = null;
 		if ( this.linkFormView != null ) {
 			urlInputView = this.linkFormView.urlInputView;
 			this.linkFormView.on( 'submit', () => {
-				console.log( 'execute submit' );
 				if ( urlInputView != null && urlInputView.fieldView != null && urlInputView.fieldView.element != null ) {
 					const value = urlInputView.fieldView.element.value;
-					that.#replaceLabel( this.editor, value, value.replace( prefixLabelReplace, '' ) );
+					this.#replaceLabel( this.editor, value, value.replace( prefixLabelReplace, '' ) );
 				}
 			} );
 		}
@@ -408,8 +422,6 @@ export default class RexLink extends Plugin {
 	}
 
 	#ytableWidgetExecute( table: string, column: string ) {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const that = this;
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-ignore
 		// eslint-disable-next-line max-len
@@ -427,7 +439,7 @@ export default class RexLink extends Plugin {
 			pool.close();
 
 			const linkUrl = table.split( '_' ).join( '-' ) + '://' + id;
-			that.#replaceLabelOnSubmit( that.editor, linkUrl, label );
+			this.#replaceLabelOnSubmit( this.editor, linkUrl, label );
 
 			// The line below will be probably executed inside some callback.
 			if ( urlInputView != null ) {
@@ -445,9 +457,13 @@ export default class RexLink extends Plugin {
 	}
 
 	#replaceLabel( editor: Editor, url: string, label: string ): void {
-		// remove article number from replacement label
-		label = label.replace( /^([^\[]+)\s|(\[(.*)\])/gm, '$1' );
-		// replace url in tag with replacement label
-		editor.data.set( editor.data.get().replace( '>' + url + '<', '>' + label + '<' ) );
+		const selectedElement = this.editor.model.document.selection.getSelectedElement()!;
+		const imageUtils: ImageUtils = this.editor.plugins.get( 'ImageUtils' );
+		if ( !imageUtils.isImage( selectedElement ) ) {
+			// remove article number from replacement label
+			label = label.replace( /^([^\[]+)\s|(\[(.*)\])/gm, '$1' );
+			// replace url in tag with replacement label
+			editor.data.set( editor.data.get().replace( '>' + url + '<', '>' + label + '<' ) );
+		}
 	}
 }
